@@ -1,20 +1,9 @@
 #include "Input.h"
 
-const char* MIX_EDIT_INPUT_NAMES[] = { "LJoy_X", "LJoy_Y", "RJoy_X", "RJoy_Y", "L2", "R2", NULL };
-const char* MIX_EDIT_BOOL_NAMES[] = { "Yes", "No", NULL };
-const char* MIX_EDIT_SWITCH_NAMES[] = { "Cross", "Circle", "Triangle", "Square", "Left", "Right", "Up", "Down", "L1", "R1", NULL };
-const char* MIX_EDIT_BEHAVIOR_NAMES[] = { "Absolute", "Relative", "Abs.Smooth", "Rel.Smooth", NULL };
-
 // Public methods
 View::View()
 {
-    for (int screenIndex = 0 ; screenIndex < SCREEN_LAST ; screenIndex++)
-    {
-        _markedIndex[screenIndex] = 0;
-        _prevMarkedIndex = 0;
-    }
-
-    currScreen = SCREEN_MIX_SELECT;
+    currScreen = SCREEN_CHANNEL_TESTER;
 }
 
 void View::Initialize(int channelCount, Settings* settings)
@@ -27,20 +16,12 @@ void View::Initialize(int channelCount, Settings* settings)
     tft.setRotation(3);
     tft.drawPixel(tft.width() - 1, tft.height() - 1, TFT_NAVY); // Needed to clear the screen buffer for some reason...
 
-    InitMixSelectScreen();
+    InitChannelTesterScreen();
 }
 
 void View::Refresh()
 {
     DrawCurrScreen();
-}
-
-void View::MarkSelection(int8_t index)
-{
-    _prevMarkedIndex = _markedIndex[currScreen];
-    _markedIndex[currScreen] = index;
-
-    _erasePreviousMarker = true;
 }
 
 void View::DPadPress(ButtonEnum button)
@@ -128,7 +109,7 @@ void View::L1WasPressed()
             if (isInEditMode)
                 return;
 
-            InitMixEditScreen(
+            InitFlyScreen(
                 CycleIndex(_currPage - 1, _totalPages - 1), 
                 MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
             break;
@@ -149,7 +130,7 @@ void View::R1WasPressed()
             if (isInEditMode)
                 return;
 
-            InitMixEditScreen(
+            InitFlyScreen(
                 CycleIndex(_currPage + 1, _totalPages - 1),
                 MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
             break;
@@ -223,61 +204,19 @@ bool View::IsAnyControlDirty()
     return false;
 }
 
-uint8_t View::CycleIndex(int newIndex, int maxIndex)
-{
-    return CycleIndex(newIndex, 0, maxIndex);
-}
-
-uint8_t View::CycleIndex(int newIndex, int minIndex, int maxIndex)
-{
-    if (newIndex < minIndex)
-        newIndex = maxIndex;
-    else if (newIndex > maxIndex)
-        newIndex = minIndex;
-
-    return newIndex;
-}
-
-MixSettings* View::GetSettings()
-{
-    MixSettings* mixSettings = new MixSettings();
-    mixSettings -> inputIndex = _mix_edit_controls[MIX_EDIT_INPUT] -> GetValue();
-    mixSettings -> weight = _mix_edit_controls[MIX_EDIT_WEIGHT] -> GetValue();
-    mixSettings -> inverted = _mix_edit_controls[MIX_EDIT_INVERTED] -> GetValue() == 1;
-    mixSettings -> expo = _mix_edit_controls[MIX_EDIT_EXPO] -> GetValue();
-    mixSettings -> switch1Index = _mix_edit_controls[MIX_EDIT_SWITCH1] -> GetValue();
-    mixSettings -> switch2Index = _mix_edit_controls[MIX_EDIT_SWITCH2] -> GetValue();
-    mixSettings -> deadzone = _mix_edit_controls[MIX_EDIT_DEAD_ZONE] -> GetValue();
-    mixSettings -> behaviorIndex = _mix_edit_controls[MIX_EDIT_BEHAVIOUR] -> GetValue();
-    mixSettings -> limitMin = _mix_edit_controls[MIX_EDIT_LIMIT_MIN] -> GetValue();
-    mixSettings -> limitMax = _mix_edit_controls[MIX_EDIT_LIMIT_MAX] -> GetValue();
-    return mixSettings;
-}
-
-void View::SetSettings(MixSettings* newSettings)
-{
-    _mix_edit_controls[MIX_EDIT_INPUT] -> SetValue(newSettings -> inputIndex);
-    _mix_edit_controls[MIX_EDIT_WEIGHT] -> SetValue(newSettings -> weight);
-    _mix_edit_controls[MIX_EDIT_INVERTED] -> SetValue(newSettings -> inverted == 1);
-    _mix_edit_controls[MIX_EDIT_EXPO] -> SetValue(newSettings -> expo);
-    _mix_edit_controls[MIX_EDIT_SWITCH1] -> SetValue(newSettings -> switch1Index);
-    _mix_edit_controls[MIX_EDIT_SWITCH2] -> SetValue(newSettings -> switch2Index);
-    _mix_edit_controls[MIX_EDIT_DEAD_ZONE] -> SetValue(newSettings -> deadzone);
-    _mix_edit_controls[MIX_EDIT_BEHAVIOUR] -> SetValue(newSettings -> behaviorIndex);
-    _mix_edit_controls[MIX_EDIT_LIMIT_MIN] -> SetValue(newSettings -> limitMin);
-    _mix_edit_controls[MIX_EDIT_LIMIT_MAX] -> SetValue(newSettings -> limitMax);
-}
-
+// =================================================================================
 // Private methods:
+// =================================================================================
+
 void View::InitCurrScreen()
 {
     switch (currScreen)
     {
         case SCREEN_MIX_SELECT:
-            InitMixSelectScreen();
+            InitChannelTesterScreen();
             break;
         case SCREEN_MIX_EDIT:
-            InitMixEditScreen(0, MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
+            InitFlyScreen(0, MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
             break;
     }
 }
@@ -287,39 +226,12 @@ void View::DrawCurrScreen()
     switch (currScreen)
     {
         case SCREEN_MIX_SELECT:
-            DrawMixSelectScreen(MIX_EDIT_INPUT_NAMES);
+            DrawChannelTesterScreen(MIX_EDIT_INPUT_NAMES);
             break;
         case SCREEN_MIX_EDIT:
-            DrawMixEditScreen();
+            DrawFlyScreen();
             break;
     }
-}
-
-void View::EnterEditMode()
-{
-    // Start editing the currently marked control
-    _selectedControl = _mix_edit_controls[_markedIndex[currScreen]];
-    _valueBeforeEdit = _selectedControl -> GetValue();
-    isInEditMode = true;
-    allowFastControl = _selectedControl -> GetControlType() == CONTROL_TYPE_INT;
-    _erasePreviousMarker = true;
-}
-
-void View::ExitEditMode(bool saveChange)
-{
-    if (!isInEditMode)
-        return;
-
-    if (!saveChange)
-        _selectedControl -> SetValue(_valueBeforeEdit);
-
-    _selectedControl = NULL;
-    isInEditMode = false;
-    allowFastControl = false;
-
-    _settings -> mixes[currChannel * MIX_COUNT + currMix] = GetSettings();
-
-    MarkSelection(_markedIndex[currScreen]); // This will erase the current control before redrawing it
 }
 
 void View::InitGeneralScreen(bool drawDefaultHeader)
@@ -476,19 +388,4 @@ void View::EraseControl(Control control)
 
     _currX = tempX;
     _currY = tempY;
-}
-
-void View::DrawMarker()
-{
-    // Draw the new marker arrow
-    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-    tft.drawString(">", _currX - 8, _currY, 2);
-}
-
-void View::EraseMarker()
-{
-    // Erase the previous marker arrow
-    tft.setTextColor(TFT_BLACK, TFT_BLACK);
-    tft.drawString(">", _currX - 8, _currY, 2);
-    _erasePreviousMarker = false;
 }

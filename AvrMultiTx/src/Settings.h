@@ -1,6 +1,7 @@
 #ifndef Settings_h
 #define Settings_h
 
+#include <Arduino.h>
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
 

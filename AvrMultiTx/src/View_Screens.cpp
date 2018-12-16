@@ -1,8 +1,10 @@
+#ifdef SETUP_ON
+
 #ifndef View_Screens_cpp
 #define View_Screens_cpp
 #include "View.h"
 
-void View::InitMixSelectScreen()
+void View::InitChannelTesterScreen()
 {
     _header = String(currChannel + 1);
     _header = "Ch." + _header;
@@ -12,7 +14,7 @@ void View::InitMixSelectScreen()
     DrawHeader((char*)_header.c_str(), true);
 }
 
-void View::DrawMixSelectScreen(const char* MIX_EDIT_INPUT_NAMES[])
+void View::DrawChannelTesterScreen(const char* MIX_EDIT_INPUT_NAMES[])
 {
     _currY = 30;
     _currX = BUTTON_MARGIN_X * 2;
@@ -40,7 +42,7 @@ void View::DrawMixSelectScreen(const char* MIX_EDIT_INPUT_NAMES[])
     }
 }
 
-void View::InitMixEditScreen(
+void View::InitFlyScreen(
     uint8_t page, 
     const char* MIX_EDIT_INPUT_NAMES[], const char* MIX_EDIT_BOOL_NAMES[], 
     const char* MIX_EDIT_SWITCH_NAMES[], const char* MIX_EDIT_BEHAVIOR_NAMES[])
@@ -115,7 +117,7 @@ void View::InitializeMixEditControls(
     _mix_edit_controls[MIX_EDIT_LIMIT_MAX] = limitMax;
 }
 
-void View::DrawMixEditScreen()
+void View::DrawFlyScreen()
 {
     if (!IsAnyControlDirty())
         return;
@@ -201,5 +203,7 @@ void View::DrawMixEditScreen()
         }
     }
 }
+
+#endif
 
 #endif

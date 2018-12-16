@@ -6,7 +6,7 @@
                 "ARDUINO=10800",
                 "USBCON",
                 "TX_ENABLED",
-                "SETUP_ON"
+                "SETUP_OFF"
             ],
             "includePath": [
                 "${workspaceFolder}",
@@ -15,6 +15,7 @@
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
                 "E:\\Media\\My Documents\\Arduino\\libraries",
+                "${workspaceFolder}\\AvrMultiTx\\include\\**",
                 "${workspaceFolder}\\AvrMultiTx\\include\\**"
             ],
             "forcedInclude": [
