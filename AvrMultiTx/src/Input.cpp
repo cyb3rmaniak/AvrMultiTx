@@ -62,16 +62,16 @@ void Input::CheckInput(uint16_t currTime)
         return;
 
     if (_PS4.getButtonClick(PS))
-        _view -> MoveToScreen(SCREEN_MIX_SELECT, true);
+        _view -> MoveToScreen(SCREEN_CHANNEL_TESTER, true);
     else if (_PS4.getButtonClick(CIRCLE))
         _view -> BackWasPressed();
     else if (_PS4.getButtonClick(CROSS))
         _view -> OKWasPressed();
-    else if (_PS4.getButtonClick(UP) || (_view -> allowFastControl && _PS4.getButtonPress(UP)))
+    else if (_PS4.getButtonClick(UP))
         _view -> DPadPress(UP);
     else if (_PS4.getButtonClick(RIGHT))
         _view -> DPadPress(RIGHT);
-    else if (_PS4.getButtonClick(DOWN) || (_view -> allowFastControl && _PS4.getButtonPress(DOWN)))
+    else if (_PS4.getButtonClick(DOWN))
         _view -> DPadPress(DOWN);
     else if (_PS4.getButtonClick(LEFT))
         _view -> DPadPress(LEFT);
@@ -87,9 +87,6 @@ void Input::CheckInput(uint16_t currTime)
             _view -> DPadPress(UP);
         else if (_ps4AnalogValuesPercent[LeftHatY] < 0.45)
             _view -> DPadPress(DOWN);
-
-        if (!_view -> isInEditMode || !_view -> allowFastControl)
-            _nextTimeMenuInputIsAllowed = currTime + 180;
     }
 
     //Serial.println(_ps4AnalogValuesPercent[LeftHatY]);

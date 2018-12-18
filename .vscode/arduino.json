@@ -2,7 +2,7 @@
     "arduino.path": "C:/Program Files (x86)/Arduino",
     "arduino.logLevel": "info",
     "arduino.defaultBaudRate": 115200,
-    "sketch": "src\\AvrMultiTx.ino",
+    "sketch": "AvrMultiTx\\src\\AvrMultiTx.ino",
     "port": "COM3",
     "output": "../build",
     "debugger": "jlink",

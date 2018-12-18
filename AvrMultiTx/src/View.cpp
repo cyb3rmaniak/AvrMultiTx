@@ -1,4 +1,5 @@
 #include "Input.h"
+#include "Control.h"
 
 // Public methods
 View::View()
@@ -26,71 +27,26 @@ void View::Refresh()
 
 void View::DPadPress(ButtonEnum button)
 {
-    int newIndex;
     switch (currScreen)
     {
-        case SCREEN_MIX_SELECT:
-            switch (button)
-            {
-                case UP:    newIndex = CycleIndex(_markedIndex[currScreen] - 1, MIX_COUNT - 1); break;
-                case DOWN:  newIndex = CycleIndex(_markedIndex[currScreen] + 1, MIX_COUNT - 1); break;
-            }
-            break;
-        case SCREEN_MIX_EDIT:
-            if (isInEditMode)
-            {
-                switch (button)
-                {
-                    case UP:    _selectedControl -> SwitchUp();     break;
-                    case DOWN:  _selectedControl -> SwitchDown();   break;
-                }
-                // Don't change the selection. MarkSelection at the end of the method
-                // will mark the current control to be erased before re-drawing it.
-                newIndex = _markedIndex[currScreen];
-            }
-            else
-            {
-                switch (button)
-                {
-                    case UP:    newIndex = CycleIndex(_markedIndex[currScreen] - 1, _currPageMinControlIndex, _currPageMaxControlIndex); break;
-                    case DOWN:  newIndex = CycleIndex(_markedIndex[currScreen] + 1, _currPageMinControlIndex, _currPageMaxControlIndex); break;
-                }
-            }
-            break;
         default:
             return;
     }
-
-    MarkSelection(newIndex);
 }
 
 void View::OKWasPressed()
 {
     switch (currScreen)
     {
-        case SCREEN_MIX_SELECT:
-            currMix = _markedIndex[currScreen];
-            MoveToScreen(SCREEN_MIX_EDIT, true);
-            break;
-        case SCREEN_MIX_EDIT:
-            if (isInEditMode)
-                ExitEditMode(true);
-            else
-                EnterEditMode();
-            break;
+        default:
+            return;
     }
 }
 
 void View::BackWasPressed()
 {
-    if (currScreen == SCREEN_MIX_SELECT)
+    if (currScreen == 0)
         return;
-
-    if (currScreen == SCREEN_MIX_EDIT && isInEditMode)
-    {
-        ExitEditMode(false);
-        return;
-    }
             
     MoveBackToPrevScreen();
 }
@@ -99,20 +55,8 @@ void View::L1WasPressed()
 {
     switch (currScreen)
     {
-        case SCREEN_MIX_SELECT:
-            currChannel = CycleIndex(currChannel - 1, _channelCount - 1);
-
-            // Dont keep a history of this (override curr page)
-            MoveToScreen(SCREEN_MIX_SELECT, false);
-            break;
-        case SCREEN_MIX_EDIT:
-            if (isInEditMode)
-                return;
-
-            InitFlyScreen(
-                CycleIndex(_currPage - 1, _totalPages - 1), 
-                MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
-            break;
+        default:
+            return;
     }
 }
 
@@ -120,26 +64,14 @@ void View::R1WasPressed()
 {
     switch (currScreen)
     {
-        case SCREEN_MIX_SELECT:
-            currChannel = CycleIndex(currChannel + 1, _channelCount - 1);
-
-            // Dont keep a history of this (override curr page)
-            MoveToScreen(SCREEN_MIX_SELECT, false);
-            break;
-        case SCREEN_MIX_EDIT:
-            if (isInEditMode)
-                return;
-
-            InitFlyScreen(
-                CycleIndex(_currPage + 1, _totalPages - 1),
-                MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
-            break;
+        default:
+            return;
     }
 }
 
 void View::MoveToScreen(uint8_t screen, bool keepHistory)
 {
-    _erasePreviousMarker = true;
+    _shouldRefreshScreen = true;
 
     if (keepHistory)
     {
@@ -188,18 +120,10 @@ void View::SetControllerStatus(bool isConnected)
 
 bool View::IsAnyControlDirty()
 {
-    if (currScreen != SCREEN_MIX_EDIT)
-        return false;
-    
-    if (_erasePreviousMarker)
+    if (_shouldRefreshScreen)
         return true;
 
-    for (int currControl = _currPageMinControlIndex ; currControl < _currPageMaxControlIndex ; currControl++)
-        if (_mix_edit_controls[currControl] -> isDirty)
-        {
-            Serial.println(currControl);
-            return true;
-        }
+    // TODO - Check if controls are dirty
 
     return false;
 }
@@ -212,11 +136,11 @@ void View::InitCurrScreen()
 {
     switch (currScreen)
     {
-        case SCREEN_MIX_SELECT:
+        case SCREEN_CHANNEL_TESTER:
             InitChannelTesterScreen();
             break;
-        case SCREEN_MIX_EDIT:
-            InitFlyScreen(0, MIX_EDIT_INPUT_NAMES, MIX_EDIT_BOOL_NAMES, MIX_EDIT_SWITCH_NAMES, MIX_EDIT_BEHAVIOR_NAMES);
+        case SCREEN_FLY:
+            InitFlyScreen();
             break;
     }
 }
@@ -225,10 +149,10 @@ void View::DrawCurrScreen()
 {
     switch (currScreen)
     {
-        case SCREEN_MIX_SELECT:
-            DrawChannelTesterScreen(MIX_EDIT_INPUT_NAMES);
+        case SCREEN_CHANNEL_TESTER:
+            DrawChannelTesterScreen();
             break;
-        case SCREEN_MIX_EDIT:
+        case SCREEN_FLY:
             DrawFlyScreen();
             break;
     }
@@ -243,8 +167,6 @@ void View::InitGeneralScreen(bool drawDefaultHeader)
     
     if (drawDefaultHeader)
         DrawHeader((char*)SCREEN_NAMES[currScreen], false);
-
-    _markedIndex[currScreen] = 0;
 }
 
 void View::DrawHeader(char* header, bool drawL1R1Controls)
@@ -315,32 +237,6 @@ void View::NewLine(int font)
     _currX = 2;
 }
 
-uint8_t _number_of_digits;
-uint8_t View::GetNumberLength(long number)
-{
-    _number_of_digits = 0;
-
-    do 
-    {
-        ++_number_of_digits; 
-        number *= 0.1F;
-    } 
-    while (number);
-
-    return _number_of_digits;
-}
-
-void View::DrawPercent(long number, int font)
-{
-    uint8_t digitsCount = GetNumberLength(number);
-    // uint8_t digitsToFill = 3 - digitsCount;
-    // _currX += font * 7 * digitsToFill;
-    tft.setCursor(_currX, _currY, font);
-    tft.print(number);
-    tft.print("%");
-    _currX += font * 7 * (digitsCount + 1);
-}
-
 void View::DrawControl(Control* control, bool isSelected)
 {
     control -> prevX = _currX;
@@ -354,21 +250,21 @@ void View::DrawControl(Control* control, bool isSelected)
 
     switch (control -> GetControlType())
     {
-        case CONTROL_TYPE_INT:
-        {
-            IntControl* intControl = (IntControl*)control;
-            if (intControl -> showPercent)
-                DrawPercent(intControl -> GetValue(), 2);
-            else
-                DrawString(control -> ToString(), 2);
-            break;
-        }
-        case CONTROL_TYPE_DROPDOWN:
-        {
-            DropdownControl* dropControl = (DropdownControl*)control;
-            DrawString(dropControl -> ToString(), 2);
-            break;
-        }
+        // case CONTROL_TYPE_INT:
+        // {
+        //     IntControl* intControl = (IntControl*)control;
+        //     if (intControl -> showPercent)
+        //         DrawPercent(intControl -> GetValue(), 2);
+        //     else
+        //         DrawString(control -> ToString(), 2);
+        //     break;
+        // }
+        // case CONTROL_TYPE_DROPDOWN:
+        // {
+        //     DropdownControl* dropControl = (DropdownControl*)control;
+        //     DrawString(dropControl -> ToString(), 2);
+        //     break;
+        // }
     }
 
     control -> isDirty = false;

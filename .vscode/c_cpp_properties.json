@@ -2,25 +2,25 @@
     "configurations": [
         {
             "name": "Win32",
-            "defines": [
+            "defines": 
+            [
                 "ARDUINO=10800",
                 "USBCON",
                 "TX_ENABLED",
                 "SETUP_OFF"
             ],
-            "includePath": [
+            "includePath": 
+            [
                 "${workspaceFolder}",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                "C:\\Program Files (x86)\\Arduino\\hardware\\tools",
+                "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
-                "E:\\Media\\My Documents\\Arduino\\libraries",
-                "${workspaceFolder}\\AvrMultiTx\\include\\**",
-                "${workspaceFolder}\\AvrMultiTx\\include\\**"
+                "C:\\Users\\borisg\\Documents\\Arduino\\libraries\\**"
             ],
-            "forcedInclude": [
-                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h",
-                "${workspaceFolder}\\AvrMultiTx\\include\\arduino\\Arduino.h"
+            "forcedInclude": 
+            [
+                "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\cores\\arduino\\Arduino.h"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
@@ -28,11 +28,10 @@
                 "path": [
                     "${workspaceFolder}",
                     "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
-                    "C:\\Program Files (x86)\\Arduino\\hardware\\tools",
+                    "C:\\Program Files (x86)\\Arduino\\hardware\\tools\\**",
                     "C:\\Program Files (x86)\\Arduino\\libraries\\**",
                     "C:\\Program Files (x86)\\Arduino\\tools\\**",
-                    "E:\\Media\\My Documents\\Arduino\\libraries",
-                    "${workspaceFolder}\\AvrMultiTx\\include\\**"
+                    "C:\\Users\\borisg\\Documents\\Arduino\\libraries\\**"
                 ]
             },
             "intelliSenseMode": "clang-x64",

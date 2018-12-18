@@ -5,6 +5,8 @@
 
 #include "Settings.h"
 
+#include "SliderControl.h"
+
 #include <SPI.h> //SPI is used by the TFT display
 #include <TFT_S6D02A1.h> // Graphics and font library for S6D02A1 driver chip
 #include <controllerEnums.h> // For PS4 controller enums
@@ -42,12 +44,12 @@ class View
     void    SetControllerStatus(bool isConnected);
     bool    IsAnyControlDirty();
     
-    MixSettings* View::GetSettings();
+    MixSettings* GetSettings();
     void SetSettings(MixSettings* newSettings);
 
       
   private:
-    bool        _erasePreviousMarker;
+    bool        _shouldRefreshScreen;
     int16_t     _currX;
     int16_t     _currY;
     uint8_t     _prevScreen[5];
@@ -70,8 +72,6 @@ class View
     void      DrawButton(int16_t x, int16_t y, int16_t width, int16_t height, char* text, uint8_t fontSize, uint16_t textColor, uint16_t bgColor, uint16_t buttonLineColor, bool shouldFill, uint16_t buttonBgColor);
     void      DrawString(char* content, int font);
     void      NewLine(int font);
-    uint8_t   GetNumberLength(long number);
-    void      DrawPercent(long number, int font);
     void      DrawControl(Control* control, bool isSelected);
     void      EraseControl(Control control);
 };
